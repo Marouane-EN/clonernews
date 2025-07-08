@@ -1,7 +1,7 @@
 
 const notification = document.getElementById('notification')
 const showButton = document.getElementById('showUpdates')
-const posts = document.getElementsByClassName('posts')
+const posts = document.getElementById('posts')
 let previousItemIds = []
 
 // async function checkForUpdates() {
@@ -44,16 +44,12 @@ async function fetchLastId() {
     const response = await fetch("https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty")
     if (!response.ok) {
       throw new Error("Error");
-
     }
     data = await response.json()
     if (data.error) {
       throw new Error("data.error");
     }
-
     return data
-
-
   } catch (error) {
     throw error
   }
@@ -64,14 +60,12 @@ async function fetchItem(id) {
     const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`)
     if (!response.ok) {
       throw new Error("Error");
-
     }
     data = await response.json()
     if (data.error) {
       throw new Error("data.error");
     }
     return data
-
   } catch (error) {
     throw error
   }
@@ -87,7 +81,55 @@ async function getData() {
     }
     i--
   }
+  // console.log(data);
 
+  return data
 }
 
-getData()
+function display(data) {
+
+
+  //------------------------------------
+  // data is array of object
+  for (let i in data) {
+    // console.log(i);
+    
+    let newPost = document.createElement('div')
+    newPost.classList.add('onePost')
+    // console.log(data[i].title);
+    
+    newPost.innerHTML += `
+    <h3>${data[i].title}</h3>
+    `
+    if (data[i].url != undefined) {
+      newPost.innerHTML += `<p>${data[i].url}</p>`
+    }
+    if (data[i].text != undefined) {
+      newPost.innerHTML += `<p>${data[i].text}</p>`
+    }
+    if (data[i].score != undefined) {
+      newPost.innerHTML += `<h6>${data[i].score}}</h6>`
+    }
+    if (data[i].time != undefined) {
+      newPost.innerHTML += `<h6>${data[i].time}}</h6>`
+    }
+    posts.append(newPost)
+  }
+}
+async function fetchData() {
+  // console.log(1);
+
+  try {
+    const response = await getData();
+    // console.log(3);
+
+    // console.log(response);
+    display(response)
+
+  } catch (error) {
+    // console.log(4);
+    console.error("Error fetching or parsing data:", error);
+  }
+}
+
+fetchData()
