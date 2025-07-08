@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Corner</title>
+    <style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .notification-corner {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .notification-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #fffae6;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #8a6d3b;
+    border: 1px solid #ffeeba;
+  }
+
+  .notification-count {
+    background-color: #f0ad4e;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .show-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+
+  .show-button:hover {
+    background-color: #0056b3;
+  }
+
+  .main-content {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+  }
+
+  .notification-text {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+  }
+</style>
+
+    
+   
+</head>
+<body>
+    <div class="notification-corner">
+        <div class="notification-header">
+            <div class="notification-badge">
+                <span>New stuff!</span>
+                <div class="notification-count">.</div>
+            </div>
+            <button class="show-button">Show</button>
+        </div>
+        
+        <div class="main-content">
+          
+            <div class="notification-text">
+              
+            </div>
+        </div>
+    </div>
+</body>
+</html>
