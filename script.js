@@ -2,6 +2,7 @@
 const notification = document.getElementById('notification')
 const showButton = document.getElementById('showUpdates')
 const posts = document.getElementById('posts')
+const loadMore = document.getElementById('loadMore')
 let previousItemIds = []
 
 // async function checkForUpdates() {
@@ -37,7 +38,8 @@ let previousItemIds = []
 
 //   //
 // })
-
+let maxPost
+let LastID
 async function fetchLastId() {
   let data
   try {
@@ -49,6 +51,7 @@ async function fetchLastId() {
     if (data.error) {
       throw new Error("data.error");
     }
+    
     return data
   } catch (error) {
     throw error
@@ -70,9 +73,13 @@ async function fetchItem(id) {
     throw error
   }
 }
-async function getData() {
+
+async function getData(LastID) {
+  // let LastID 
   const data = []
-  let LastID = await fetchLastId()
+  if (LastID == undefined){
+    LastID = await fetchLastId()
+  }
   let i = LastID
   while (data.length < 30) {
     const item = await fetchItem(i)
@@ -81,30 +88,32 @@ async function getData() {
     }
     i--
   }
-  // console.log(data);
-
-  return data
+  let t = {LastID, data}
+  console.log(t.LastID);
+  
+  return t
 }
 
+
 function display(data) {
-
-
-  //------------------------------------
   // data is array of object
   for (let i in data) {
-    // console.log(i);
-    
     let newPost = document.createElement('div')
     newPost.classList.add('onePost')
-    // console.log(data[i].title);
-    
+    if (data[i].by != undefined){
+      newPost.innerHTML += `
+      <h4>${data[i].by}</h4>
+      `
+    }
     newPost.innerHTML += `
     <h3>${data[i].title}</h3>
     `
-    if (data[i].url != undefined) {
-      newPost.innerHTML += `<p>${data[i].url}</p>`
-    }
+    
     if (data[i].text != undefined) {
+      if (data[i].url != undefined) {
+        // newPost.innerHTML += `<p>${data[i].text}</p>`
+      newPost.innerHTML += `<a href = ${data[i].url}>${data[i].text}</a>`
+    }
       newPost.innerHTML += `<p>${data[i].text}</p>`
     }
     if (data[i].score != undefined) {
@@ -116,20 +125,44 @@ function display(data) {
     posts.append(newPost)
   }
 }
-async function fetchData() {
-  // console.log(1);
 
+async function fetchData(LastID) {
   try {
-    const response = await getData();
-    // console.log(3);
-
-    // console.log(response);
-    display(response)
+    const response = await getData(LastID);
+    display(response.data)
 
   } catch (error) {
-    // console.log(4);
     console.error("Error fetching or parsing data:", error);
   }
 }
 
-fetchData()
+fetchData(LastID)
+
+  setInterval(async ()=>{
+     let t = await fetchLastId()
+     if (t > maxPost){
+      maxPost = t
+      // add update logic ----> Anas
+     }
+  }, 2000)
+
+async function updateMaxPost() {
+  const t = await getData();
+  maxPost = t.LastID
+}
+
+updateMaxPost()
+
+loadMore.addEventListener('click',async ()=>{
+  // console.log(LastID);
+  const t = await getData();
+  LastID = t.LastID
+  LastID = LastID - 30
+  maxPost = t.LastID
+  console.log(LastID);
+  
+  
+  fetchData(LastID)
+})
+
+
