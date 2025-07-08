@@ -1,6 +1,7 @@
 
 const notification = document.getElementById('notification')
 const showButton = document.getElementById('showUpdates')
+const posts = document.getElementsByClassName('posts')
 
 let previousItemIds = []
 
@@ -9,7 +10,7 @@ async function checkForUpdates() {
     const updates = await fetchJSON(UPDATES_URL)
     const currentIds = updates.items || []
 
-const isDifferent = arraysAreDifferent(currentIds, previousItemIds)
+    const isDifferent = arraysAreDifferent(currentIds, previousItemIds)
 
 
     if (isDifferent) {
@@ -31,11 +32,30 @@ function arraysAreDifferent(arr1, arr2) {
 
   return false
 }
-
 setInterval(checkForUpdates, 5000)
-
 showButton.addEventListener('click', async () => {
   notification.classList.add('hidden')
 
- //
-  })
+  //
+})
+
+
+let stories = fetch('https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty')
+  .then((value) => value.json())
+let jobs = fetch('https://hacker-news.firebaseio.com/v0/jobstories.json?print=pretty')
+  .then((value) => value.json())
+
+
+async function show(id) {
+  let tmp = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`)
+  let infos = tmp.json()
+  let newPost = document.createElement('div')
+  posts.appendChild(newPost)
+
+  newPost.innerHTML = `
+    <a href="${infos.url}">${infos.title}</a>
+    <p>${infos.text}</p>
+    <p>${infos.score}</p>
+    <p>${infos.time}</p>
+    `
+}
