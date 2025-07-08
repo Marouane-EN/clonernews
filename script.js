@@ -1,9 +1,11 @@
+let maxPost;
+let LastID;
 
-const notification = document.getElementById('notification')
-const showButton = document.getElementById('showUpdates')
-const posts = document.getElementById('posts')
-const loadMore = document.getElementById('loadMore')
-let previousItemIds = []
+const notification = document.getElementById("notification");
+const showButton = document.getElementById("showUpdates");
+const posts = document.getElementById("posts");
+const loadMore = document.getElementById("loadMore");
+let previousItemIds = [];
 
 // async function checkForUpdates() {
 //   try {
@@ -11,7 +13,6 @@ let previousItemIds = []
 //     const currentIds = updates.items || []
 
 //     const isDifferent = arraysAreDifferent(currentIds, previousItemIds)
-
 
 //     if (isDifferent) {
 //       notification.classList.remove('hidden')
@@ -38,131 +39,126 @@ let previousItemIds = []
 
 //   //
 // })
-let maxPost
-let LastID
+async function fetchJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+  return await response.json();
+}
+
 async function fetchLastId() {
-  let data
-  try {
-    const response = await fetch("https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty")
-    if (!response.ok) {
-      throw new Error("Error");
-    }
-    data = await response.json()
-    if (data.error) {
-      throw new Error("data.error");
-    }
-    
-    return data
-  } catch (error) {
-    throw error
-  }
+  return fetchJSON("https://hacker-news.firebaseio.com/v0/maxitem.json");
 }
+
 async function fetchItem(id) {
-  let data
-  try {
-    const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`)
-    if (!response.ok) {
-      throw new Error("Error");
-    }
-    data = await response.json()
-    if (data.error) {
-      throw new Error("data.error");
-    }
-    return data
-  } catch (error) {
-    throw error
-  }
+  return fetchJSON(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
 }
 
-async function getData(LastID) {
-  // let LastID 
-  const data = []
-  if (LastID == undefined){
-    LastID = await fetchLastId()
+async function getData(id) {
+  const data = [];
+
+  let currentId = await fetchLastId();
+  if (id) {
+    currentId = id;
   }
-  let i = LastID
   while (data.length < 30) {
-    const item = await fetchItem(i)
-    if (item.type !== "comment" && item.type !== "pollopt") {
-      data.push(item)
-    }
-    i--
-  }
-  let t = {LastID, data}
-  console.log(t.LastID);
-  
-  return t
-}
+    const batchSize = 40; // Slightly larger batch for better coverage
+    const ids = Array.from({ length: batchSize }, (_, i) => currentId - i);
+    currentId -= batchSize;
 
+    const results = await Promise.allSettled(ids.map(fetchItem));
+
+    for (const result of results) {
+      if (
+        result.status === "fulfilled" &&
+        result.value &&
+        !result.value.deleted &&
+        result.value.type !== "comment" &&
+        result.value.type !== "pollopt"
+      ) {
+        data.push(result.value);
+        if (data.length === 30) break; // Early exit for performance
+      }
+    }
+  }
+  console.log(data);
+
+  LastID = data[data.length - 1].id;
+  return data;
+}
 
 function display(data) {
   // data is array of object
-  for (let i in data) {
-    let newPost = document.createElement('div')
-    newPost.classList.add('onePost')
-    if (data[i].by != undefined){
+
+  for (let i = 0; i < data.length; i++) {
+    let newPost = document.createElement("div");
+    newPost.classList.add("onePost");
+    if (data[i].by != undefined) {
       newPost.innerHTML += `
       <h4>${data[i].by}</h4>
-      `
+      `;
     }
     newPost.innerHTML += `
+    <h1>${data[i].type}</h1>
     <h3>${data[i].title}</h3>
-    `
-    
+    `;
+
     if (data[i].text != undefined) {
       if (data[i].url != undefined) {
         // newPost.innerHTML += `<p>${data[i].text}</p>`
-      newPost.innerHTML += `<a href = ${data[i].url}>${data[i].text}</a>`
-    }
-      newPost.innerHTML += `<p>${data[i].text}</p>`
+        newPost.innerHTML += `<a href = ${data[i].url}>${data[i].text}</a>`;
+      }
+      newPost.innerHTML += `<p>${data[i].text}</p>`;
     }
     if (data[i].score != undefined) {
-      newPost.innerHTML += `<h6>${data[i].score}}</h6>`
+      newPost.innerHTML += `<h6>score: ${data[i].score}</h6>`;
     }
     if (data[i].time != undefined) {
-      newPost.innerHTML += `<h6>${data[i].time}}</h6>`
+      newPost.innerHTML += `<h6>time: ${data[i].time}</h6>`;
     }
-    posts.append(newPost)
+    posts.append(newPost);
   }
 }
 
 async function fetchData(LastID) {
   try {
     const response = await getData(LastID);
-    display(response.data)
-
+    maxPost = LastID;
+    display(response);
   } catch (error) {
     console.error("Error fetching or parsing data:", error);
   }
 }
 
-fetchData(LastID)
+fetchData(LastID);
 
-  setInterval(async ()=>{
-     let t = await fetchLastId()
-     if (t > maxPost){
-      maxPost = t
-      // add update logic ----> Anas
-     }
-  }, 2000)
-
-async function updateMaxPost() {
-  const t = await getData();
-  maxPost = t.LastID
+setInterval(async () => {
+  let t = await fetchLastId();
+  if (t > maxPost) {
+    maxPost = t;
+    // add update logic ----> Anas
+  }
+}, 2000);
+function debounce(func, delay) {
+  let time = null;
+  return (...args) => {
+    if (time) {
+      clearTimeout(time);
+    }
+    time = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
 }
 
-updateMaxPost()
+loadMore.addEventListener(
+  "click",
+  debounce(() => {
+    // console.log(LastID);
 
-loadMore.addEventListener('click',async ()=>{
-  // console.log(LastID);
-  const t = await getData();
-  LastID = t.LastID
-  LastID = LastID - 30
-  maxPost = t.LastID
-  console.log(LastID);
-  
-  
-  fetchData(LastID)
-})
+    LastID = LastID - 30;
+    maxPost = LastID;
+    console.log(LastID);
 
-
+    fetchData(LastID);
+  }, 16000)
+);
