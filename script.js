@@ -54,13 +54,13 @@ async function fetchItem(id) {
 }
 
 async function getData(id) {
-  const data = [];
+  let data = 0;
 
   let currentId = await fetchLastId();
   if (id) {
     currentId = id;
   }
-  while (data.length < 30) {
+  while (data < 30) {
     const batchSize = 40; // Slightly larger batch for better coverage
     const ids = Array.from({ length: batchSize }, (_, i) => currentId - i);
     currentId -= batchSize;
@@ -75,55 +75,52 @@ async function getData(id) {
         result.value.type !== "comment" &&
         result.value.type !== "pollopt"
       ) {
-        data.push(result.value);
-        if (data.length === 30) break; // Early exit for performance
+        display(result.value);
+        data++;
+        if (data === 30) {
+          LastID = result.value.id;
+          loadMore.style.display = "block";
+          break;
+        } // Early exit for performance
       }
     }
   }
-  console.log(data);
-
-  LastID = data[data.length - 1].id;
-  return data;
 }
 
 function display(data) {
   // data is array of object
 
-  for (let i = 0; i < data.length; i++) {
-    let newPost = document.createElement("div");
-    newPost.classList.add("onePost");
-    if (data[i].by != undefined) {
-      newPost.innerHTML += `
-      <h4>${data[i].by}</h4>
-      `;
-    }
+  let newPost = document.createElement("div");
+  newPost.classList.add("onePost");
+  if (data.by != undefined) {
     newPost.innerHTML += `
-    <h1>${data[i].type}</h1>
-    <h3>${data[i].title}</h3>
+      <h4>${data.by}</h4>
+      `;
+  }
+  newPost.innerHTML += `
+    <h1>${data.type}</h1>
+    <h3>${data.title}</h3>
     `;
 
-    if (data[i].text != undefined) {
-      if (data[i].url != undefined) {
-        // newPost.innerHTML += `<p>${data[i].text}</p>`
-        newPost.innerHTML += `<a href = ${data[i].url}>${data[i].text}</a>`;
-      }
-      newPost.innerHTML += `<p>${data[i].text}</p>`;
+  if (data.text != undefined) {
+    if (data.url != undefined) {
+      // newPost.innerHTML += `<p>${data.text}</p>`
+      newPost.innerHTML += `<a href = ${data.url}>${data.text}</a>`;
     }
-    if (data[i].score != undefined) {
-      newPost.innerHTML += `<h6>score: ${data[i].score}</h6>`;
-    }
-    if (data[i].time != undefined) {
-      newPost.innerHTML += `<h6>time: ${data[i].time}</h6>`;
-    }
-    posts.append(newPost);
+    newPost.innerHTML += `<p>${data.text}</p>`;
   }
+  if (data.score != undefined) {
+    newPost.innerHTML += `<h6>score: ${data.score}</h6>`;
+  }
+  if (data.time != undefined) {
+    newPost.innerHTML += `<h6>time: ${data.time}</h6>`;
+  }
+  posts.append(newPost);
 }
 
 async function fetchData(LastID) {
   try {
-    const response = await getData(LastID);
-    maxPost = LastID;
-    display(response);
+    await getData(LastID);
   } catch (error) {
     console.error("Error fetching or parsing data:", error);
   }
