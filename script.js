@@ -144,6 +144,8 @@ async function fetchData(LastID) {
 fetchData(LastID);
 
 // Poll for new posts every 2 seconds
+let notif = document.getElementById('notification-badge')
+let n = document.createElement('span')
 setInterval(async () => {
   try {
     let latest = await fetchLastId();
@@ -151,6 +153,8 @@ setInterval(async () => {
 
     if (latest > maxPost) {
       maxPost = latest;
+      notif.append(n)
+      n.innerHTML = "New stuff !!"
       notification.classList.remove("hidden");
     }
   } catch (err) {
