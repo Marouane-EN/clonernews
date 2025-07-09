@@ -64,7 +64,20 @@ function formatDate(s) {
   return date.toLocaleString();
 }
 
-function display(data) {
+async function getCommentLength(array) {
+  let coun = 0;
+  if (array) {
+    for (let i = 0; i < array.length; i++) {
+      const item = await fetchItem(array[i]);
+      if (!item.deleted && !item.dead) {
+        coun++;
+      }
+    }
+  }
+  return coun;
+}
+
+async function display(data) {
   let newPost = document.createElement("div");
   newPost.id = data.id;
   newPost.classList.add("post");
@@ -90,7 +103,7 @@ function display(data) {
         <span class="post-score">${data.score ?? ""} points</span>
         <span>by ${data.by ?? ""}</span>
         <span>${formatDate(data.time)}</span>
-        <span class="comments">${data.kids?.length ?? 0} comments</span>
+        <span class="comments">${await getCommentLength(data.kids)} comments</span>
   `;
   const commentsEl = postMeta.querySelector(".comments");
 
