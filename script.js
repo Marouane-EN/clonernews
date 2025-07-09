@@ -136,7 +136,9 @@ async function display(data) {
 
           if (!commentData.deleted && !commentData.dead) {
             comments.innerHTML += `
-            <span style="color:green;">by ${commentData.by ?? "anonymous"}</span><br>
+            <span style="color:green;">by ${
+              commentData.by ?? "anonymous"
+            }</span><br>
             <span>${commentData.text ?? ""}</span><br>
             <span>${formatDate(commentData.time)}</span><br>
             `;
@@ -188,15 +190,14 @@ showButton.addEventListener("click", async () => {
 
 function throttle(func, limit) {
   let inThrottle;
-  return function(...args) {
+  return function (...args) {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   };
 }
-
 
 loadMore.addEventListener(
   "click",
@@ -204,5 +205,5 @@ loadMore.addEventListener(
     LastID = LastID - 30;
     maxPost = LastID;
     fetchData(LastID);
-  }, 5000)
+  }, 10000)
 );
