@@ -1,6 +1,6 @@
 let maxPost;
 let LastID;
-let count = 1;
+let count = 0;
 const notification = document.getElementById("notification");
 const showButton = document.getElementById("showUpdates");
 const posts = document.getElementById("posts");
@@ -44,6 +44,7 @@ async function getData(id) {
         result.value.type !== "comment" &&
         result.value.type !== "pollopt"
       ) {
+        count++;
         display(result.value);
         data++;
         if (data === 30) {
@@ -101,11 +102,15 @@ async function display(data) {
   newPost.append(postMeta);
   postMeta.innerHTML = `
         <span class="post-score">${data.score ?? ""} points</span>
-        <span>by ${data.by ?? ""}</span>
+        <span>by ${data.by ?? "anonymous"}</span>
         <span>${formatDate(data.time)}</span>
-        <span class="comments">${await getCommentLength(data.kids)} comments</span>
+        <span class="comments">${await getCommentLength(
+          data.kids
+        )} comments</span>
   `;
+
   const commentsEl = postMeta.querySelector(".comments");
+  commentsEl.dataset.clicked = false;
 
   if (commentsEl) {
     commentsEl.addEventListener("click", async () => {
@@ -113,27 +118,32 @@ async function display(data) {
       const postId = parentPost.id;
       console.log(postId);
       const item = await fetchItem(postId);
-      console.log(item);
 
-      if (item.kids && !item.deleted && !item.dead) {
+      if (commentsEl.dataset.clicked === "false" && item.kids) {
         const comments = document.createElement("div");
         newPost.append(comments);
+        comments.className = "comment";
         for (let i = 0; i < item.kids.length; i++) {
           const commentData = await fetchItem(item.kids[i]);
-          comments.innerHTML = `
-        <span>by ${commentData.by ?? ""}</span><br>
-        <span>by ${commentData.text ?? ""}</span><br>
-        <span>${formatDate(commentData.time)}</span>
-          `;
+
+          if (!commentData.deleted && !commentData.dead) {
+            comments.innerHTML += `
+            <span>by ${commentData.by ?? "anonymous"}</span><br>
+            <span>${commentData.text ?? ""}</span><br>
+            <span>${formatDate(commentData.time)}</span>
+            `;
+          }
         }
       }
+      commentsEl.dataset.clicked = true;
     });
   }
-  count++;
 }
 
 async function fetchData(LastID) {
   try {
+    console.log(1);
+    
     await getData(LastID);
   } catch (error) {
     console.error("Error fetching or parsing data:", error);
@@ -184,5 +194,5 @@ loadMore.addEventListener(
     maxPost = LastID;
     console.log("Loading more from ID:", LastID);
     fetchData(LastID);
-  }, 16000)
+  }, 5000)
 );
