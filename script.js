@@ -30,9 +30,8 @@ async function getData(id) {
   }
   while (data < 30) {
     const batchSize = 40; // Slightly larger batch for better coverage
-    const ids = Array.from({ length: batchSize }, (_, i) => currentId - i);
+    let ids = Array.from({ length: batchSize }, (_, i) => currentId - i);
     currentId -= batchSize;
-
     const results = await Promise.allSettled(ids.map(fetchItem));
 
     for (const result of results) {
@@ -88,26 +87,36 @@ async function display(data) {
   newPost.append(postHeader);
   postHeader.innerHTML = `
   <span class="post-rank">${count}.</span>
-        <div>
-          <a href="${data.url ?? ""}" class="post-title">${data.title ?? ""}</a>
-          <span class="post-domain">${data.type}</span>
-        </div>
-        <div>
-          
-          <span>${data.text ?? ""}</span>
-        </div>
+  <div>
+  <a href="${data.url ?? ""}" class="post-title">${data.title ?? ""}</a>
+  <span class="post-domain">${data.type}</span>
+  </div>
+  <div>
+  
+  <span>${data.text ?? ""}</span>
+  </div>
   `;
+  if (data.type === "poll") {
+    for (let i = 0; i < data.parts?.length; i++) {
+      const poll = await fetchItem(data.parts[i]);
+      postHeader.innerHTML += `
+          <br><span>${poll.score ?? ""}</span>
+          <span>${poll.text ?? ""}</span><br>
+          <span>${formatDate(poll.time)}</span><br>
+    `;
+    }
+  }
   const postMeta = document.createElement("div");
   postMeta.classList.add("post-meta");
   newPost.append(postMeta);
   postMeta.innerHTML = `
-        <span class="post-score">${data.score ?? ""} points</span>
-        <span>by ${data.by ?? "anonymous"}</span>
-        <span>${formatDate(data.time)}</span>
-        <span class="comments">${await getCommentLength(
-          data.kids
-        )} comments</span>
-  `;
+          <span class="post-score">${data.score ?? ""} points</span>
+          <span>by ${data.by ?? "anonymous"}</span>
+          <span>${formatDate(data.time)}</span>
+          <span class="comments">${await getCommentLength(
+            data.kids
+          )} comments</span>
+    `;
 
   const commentsEl = postMeta.querySelector(".comments");
   commentsEl.dataset.clicked = false;
@@ -116,7 +125,6 @@ async function display(data) {
     commentsEl.addEventListener("click", async () => {
       const parentPost = commentsEl.closest(".post");
       const postId = parentPost.id;
-      console.log(postId);
       const item = await fetchItem(postId);
 
       if (commentsEl.dataset.clicked === "false" && item.kids) {
@@ -128,9 +136,9 @@ async function display(data) {
 
           if (!commentData.deleted && !commentData.dead) {
             comments.innerHTML += `
-            <span>by ${commentData.by ?? "anonymous"}</span><br>
+            <span style="color:green;">by ${commentData.by ?? "anonymous"}</span><br>
             <span>${commentData.text ?? ""}</span><br>
-            <span>${formatDate(commentData.time)}</span>
+            <span>${formatDate(commentData.time)}</span><br>
             `;
           }
         }
@@ -142,8 +150,6 @@ async function display(data) {
 
 async function fetchData(LastID) {
   try {
-    console.log(1);
-    
     await getData(LastID);
   } catch (error) {
     console.error("Error fetching or parsing data:", error);
@@ -154,8 +160,8 @@ async function fetchData(LastID) {
 fetchData(LastID);
 
 // Poll for new posts every 2 seconds
-let notif = document.getElementById('notification-badge')
-let n = document.createElement('span')
+let notif = document.getElementById("notification-badge");
+let n = document.createElement("span");
 setInterval(async () => {
   try {
     let latest = await fetchLastId();
@@ -163,8 +169,8 @@ setInterval(async () => {
 
     if (latest > maxPost) {
       maxPost = latest;
-      notif.append(n)
-      n.innerHTML = "New stuff !!"
+      notif.append(n);
+      n.innerHTML = "New stuff !!";
       notification.classList.remove("hidden");
     }
   } catch (err) {
@@ -176,6 +182,7 @@ setInterval(async () => {
 showButton.addEventListener("click", async () => {
   notification.classList.add("hidden");
   posts.innerHTML = ""; // Clear old posts
+  count = 0;
   await fetchData(); // Fetch fresh data from maxPost
 });
 
@@ -196,7 +203,6 @@ loadMore.addEventListener(
   debounce(() => {
     LastID = LastID - 30;
     maxPost = LastID;
-    console.log("Loading more from ID:", LastID);
     fetchData(LastID);
   }, 5000)
 );
