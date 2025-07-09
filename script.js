@@ -7,38 +7,6 @@ const posts = document.getElementById("posts");
 const loadMore = document.getElementById("loadMore");
 let previousItemIds = [];
 
-// async function checkForUpdates() {
-//   try {
-//     const updates = await fetchJSON(UPDATES_URL)
-//     const currentIds = updates.items || []
-
-//     const isDifferent = arraysAreDifferent(currentIds, previousItemIds)
-
-//     if (isDifferent) {
-//       notification.classList.remove('hidden')
-//       previousItemIds = currentIds
-//     }
-//   } catch (err) {
-//     console.error('Error fetching updates:', err)
-//   }
-// }
-// function arraysAreDifferent(arr1, arr2) {
-//   if (arr1.length !== arr2.length) return true
-
-//   for (let i = 0; i < arr1.length; i++) {
-//     if (arr1[i] !== arr2[i]) {
-//       return true
-//     }
-//   }
-
-//   return false
-// }
-// setInterval(checkForUpdates, 5000)
-// showButton.addEventListener('click', async () => {
-//   notification.classList.add('hidden')
-
-//   //
-// })
 async function fetchJSON(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -81,31 +49,26 @@ async function getData(id) {
           LastID = result.value.id;
           loadMore.style.display = "block";
           break;
-        } // Early exit for performance
+        }
       }
     }
   }
 }
 
 function display(data) {
-  // data is array of object
-
   let newPost = document.createElement("div");
   newPost.classList.add("onePost");
   if (data.by != undefined) {
-    newPost.innerHTML += `
-      <h4>${data.by}</h4>
-      `;
+    newPost.innerHTML += `<h4>${data.by}</h4>`;
   }
   newPost.innerHTML += `
     <h1>${data.type}</h1>
     <h3>${data.title}</h3>
-    `;
+  `;
 
   if (data.text != undefined) {
     if (data.url != undefined) {
-      // newPost.innerHTML += `<p>${data.text}</p>`
-      newPost.innerHTML += `<a href = ${data.url}>${data.text}</a>`;
+      newPost.innerHTML += `<a href="${data.url}">${data.text}</a>`;
     }
     newPost.innerHTML += `<p>${data.text}</p>`;
   }
@@ -126,15 +89,31 @@ async function fetchData(LastID) {
   }
 }
 
+// Load initial posts
 fetchData(LastID);
 
+// Poll for new posts every 2 seconds
 setInterval(async () => {
-  let t = await fetchLastId();
-  if (t > maxPost) {
-    maxPost = t;
-    // add update logic ----> Anas
+  try {
+    let latest = await fetchLastId();
+    if (!maxPost) maxPost = latest;
+
+    if (latest > maxPost) {
+      maxPost = latest;
+      notification.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.error("Failed to check for new posts:", err);
   }
 }, 2000);
+
+// Show button event — reload content
+showButton.addEventListener("click", async () => {
+  notification.classList.add("hidden");
+  posts.innerHTML = "";      // Clear old posts
+  await fetchData();         // Fetch fresh data from maxPost
+});
+
 function debounce(func, delay) {
   let time = null;
   return (...args) => {
@@ -150,12 +129,9 @@ function debounce(func, delay) {
 loadMore.addEventListener(
   "click",
   debounce(() => {
-    // console.log(LastID);
-
     LastID = LastID - 30;
     maxPost = LastID;
-    console.log(LastID);
-
+    console.log("Loading more from ID:", LastID);
     fetchData(LastID);
   }, 16000)
 );
