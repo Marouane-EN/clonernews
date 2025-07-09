@@ -169,21 +169,21 @@ showButton.addEventListener("click", async () => {
   await fetchData(); // Fetch fresh data from maxPost
 });
 
-function debounce(func, delay) {
-  let time = null;
-  return (...args) => {
-    if (time) {
-      clearTimeout(time);
-    }
-    time = setTimeout(() => {
+function throttle(func, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
       func(...args);
-    }, delay);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
   };
 }
 
+
 loadMore.addEventListener(
   "click",
-  debounce(() => {
+  throttle(() => {
     LastID = LastID - 30;
     maxPost = LastID;
     console.log("Loading more from ID:", LastID);
