@@ -203,7 +203,6 @@ loadMore.addEventListener(
   "click",
   throttle(() => {
     LastID = LastID - 30;
-    maxPost = LastID;
     fetchData(LastID);
   }, 10000)
 );
