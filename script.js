@@ -1,6 +1,6 @@
 let maxPost;
 let LastID;
-
+let count = 1;
 const notification = document.getElementById("notification");
 const showButton = document.getElementById("showUpdates");
 const posts = document.getElementById("posts");
@@ -40,6 +40,7 @@ async function getData(id) {
         result.status === "fulfilled" &&
         result.value &&
         !result.value.deleted &&
+        !result.value.dead &&
         result.value.type !== "comment" &&
         result.value.type !== "pollopt"
       ) {
@@ -55,30 +56,67 @@ async function getData(id) {
   }
 }
 
+function formatDate(s) {
+  // Convert to milliseconds by multiplying by 1000
+  const date = new Date(s * 1000);
+
+  // Convert to a readable string
+  return date.toLocaleString();
+}
+
 function display(data) {
   let newPost = document.createElement("div");
-  newPost.classList.add("onePost");
-  if (data.by != undefined) {
-    newPost.innerHTML += `<h4>${data.by}</h4>`;
-  }
-  newPost.innerHTML += `
-    <h1>${data.type}</h1>
-    <h3>${data.title}</h3>
-  `;
-
-  if (data.text != undefined) {
-    if (data.url != undefined) {
-      newPost.innerHTML += `<a href="${data.url}">${data.text}</a>`;
-    }
-    newPost.innerHTML += `<p>${data.text}</p>`;
-  }
-  if (data.score != undefined) {
-    newPost.innerHTML += `<h6>score: ${data.score}</h6>`;
-  }
-  if (data.time != undefined) {
-    newPost.innerHTML += `<h6>time: ${data.time}</h6>`;
-  }
+  newPost.id = data.id;
+  newPost.classList.add("post");
   posts.append(newPost);
+  const postHeader = document.createElement("div");
+  postHeader.classList.add("post-heade");
+  newPost.append(postHeader);
+  postHeader.innerHTML = `
+  <span class="post-rank">${count}.</span>
+        <div>
+          <a href="${data.url ?? ""}" class="post-title">${data.title ?? ""}</a>
+          <span class="post-domain">${data.type}</span>
+        </div>
+        <div>
+          
+          <span>${data.text ?? ""}</span>
+        </div>
+  `;
+  const postMeta = document.createElement("div");
+  postMeta.classList.add("post-meta");
+  newPost.append(postMeta);
+  postMeta.innerHTML = `
+        <span class="post-score">${data.score ?? ""} points</span>
+        <span>by ${data.by ?? ""}</span>
+        <span>${formatDate(data.time)}</span>
+        <span class="comments">${data.kids?.length ?? 0} comments</span>
+  `;
+  const commentsEl = postMeta.querySelector(".comments");
+
+  if (commentsEl) {
+    commentsEl.addEventListener("click", async () => {
+      const parentPost = commentsEl.closest(".post");
+      const postId = parentPost.id;
+      console.log(postId);
+      const item = await fetchItem(postId);
+      console.log(item);
+
+      if (item.kids && !item.deleted && !item.dead) {
+        const comments = document.createElement("div");
+        newPost.append(comments);
+        for (let i = 0; i < item.kids.length; i++) {
+          const commentData = await fetchItem(item.kids[i]);
+          comments.innerHTML = `
+        <span>by ${commentData.by ?? ""}</span><br>
+        <span>by ${commentData.text ?? ""}</span><br>
+        <span>${formatDate(commentData.time)}</span>
+          `;
+        }
+      }
+    });
+  }
+  count++;
 }
 
 async function fetchData(LastID) {
@@ -110,8 +148,8 @@ setInterval(async () => {
 // Show button event — reload content
 showButton.addEventListener("click", async () => {
   notification.classList.add("hidden");
-  posts.innerHTML = "";      // Clear old posts
-  await fetchData();         // Fetch fresh data from maxPost
+  posts.innerHTML = ""; // Clear old posts
+  await fetchData(); // Fetch fresh data from maxPost
 });
 
 function debounce(func, delay) {

@@ -163,7 +163,7 @@
 
     .post-domain {
       color: #888;
-      font-size: 11px;
+      font-size: 15px;
     }
 
     .post-score {
@@ -225,105 +225,13 @@
   <!-- Posts -->
   <div id="posts">
     <!-- Sample posts to show styling -->
-    <div class="post">
-      <div class="post-header">
-        <span class="post-rank">1.</span>
-        <div>
-          <a href="#" class="post-title">Show HN: I built a neural network visualization tool</a>
-          <span class="post-domain">(github.com)</span>
-        </div>
-      </div>
-      <div class="post-meta">
-        <span class="post-score">342 points</span>
-        <span>by <a href="#">developer123</a></span>
-        <span><a href="#">2 hours ago</a></span>
-        <span><a href="#">87 comments</a></span>
-      </div>
-    </div>
-
-    <div class="post">
-      <div class="post-header">
-        <span class="post-rank">2.</span>
-        <div>
-          <a href="#" class="post-title">The future of web development: WASM and beyond</a>
-          <span class="post-domain">(medium.com)</span>
-        </div>
-      </div>
-      <div class="post-meta">
-        <span class="post-score">248 points</span>
-        <span>by <a href="#">webdev_guru</a></span>
-        <span><a href="#">4 hours ago</a></span>
-        <span><a href="#">156 comments</a></span>
-      </div>
-    </div>
-
-    <div class="post">
-      <div class="post-header">
-        <span class="post-rank">3.</span>
-        <div>
-          <a href="#" class="post-title">Why I switched from React to Vue and never looked back</a>
-          <span class="post-domain">(blog.example.com)</span>
-        </div>
-      </div>
-      <div class="post-meta">
-        <span class="post-score">189 points</span>
-        <span>by <a href="#">frontend_dev</a></span>
-        <span><a href="#">6 hours ago</a></span>
-        <span><a href="#">203 comments</a></span>
-      </div>
-    </div>
-
-    <div class="post">
-      <div class="post-header">
-        <span class="post-rank">4.</span>
-        <div>
-          <a href="#" class="post-title">Ask HN: What's the best way to learn system design?</a>
-        </div>
-      </div>
-      <div class="post-meta">
-        <span class="post-score">156 points</span>
-        <span>by <a href="#">curious_student</a></span>
-        <span><a href="#">8 hours ago</a></span>
-        <span><a href="#">92 comments</a></span>
-      </div>
-    </div>
-
-    <div class="post">
-      <div class="post-header">
-        <span class="post-rank">5.</span>
-        <div>
-          <a href="#" class="post-title">New breakthrough in quantum computing achieved at MIT</a>
-          <span class="post-domain">(mit.edu)</span>
-        </div>
-      </div>
-      <div class="post-meta">
-        <span class="post-score">421 points</span>
-        <span>by <a href="#">quantum_researcher</a></span>
-        <span><a href="#">12 hours ago</a></span>
-        <span><a href="#">178 comments</a></span>
-      </div>
-    </div>
+     
   </div>
 
-  <button id="loadMore">Load More</button>
+  <button id="loadMore" style="display: none;">Load More</button>
 
-  <script>
-    // Sample functionality for the notification
-    document.getElementById('showUpdates').addEventListener('click', function() {
-      document.getElementById('notification').classList.add('hidden');
-      // Add logic to show new posts here
-    });
-
-    // Sample functionality for load more
-    document.getElementById('loadMore').addEventListener('click', function() {
-      // Add logic to load more posts here
-      console.log('Loading more posts...');
-    });
-
-    // Show notification after a delay (demo purposes)
-    setTimeout(() => {
-      document.getElementById('notification').classList.remove('hidden');
-    }, 2000);
+  <script src="script.js">
+    
   </script>
 </body>
 </html>
